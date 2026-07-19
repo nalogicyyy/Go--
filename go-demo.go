@@ -1,113 +1,134 @@
 package main
 
-import (
-	"bufio"
-	"fmt"
-	"os"
-	"strconv"
-	"strings"
-)
+import "fmt"
 
-// Todo 待办事项结构体
-type Todo struct {
-	ID    int
-	Task  string
-	Done  bool
+// 联系人结构体
+type Contact struct {
+	id     int
+	name   string
+	phone  string
+	group  string
+	score  int
 }
 
-var todos []Todo
-var nextID = 1
+// 全局存储
+var contactList []Contact
+var groupMap map[string][]Contact
+
+// 添加联系人，返回提示信息
+func addContact(c Contact) (bool, string) {
+	// 查重
+	for _, item := range contactList {
+		if item.id == c.id {
+			return false, "学号重复，添加失败"
+		}
+	}
+	contactList = append(contactList, c)
+	// 同步分组map
+	groupMap[c.group] = append(groupMap[c.group], c)
+	return true, "添加成功"
+}
+
+// 根据ID删除
+func delContact(id int) bool {
+	for idx, item := range contactList {
+		if item.id == id {
+			contactList = append(contactList[:idx], contactList[idx+1:]...)
+			return true
+		}
+	}
+	return false
+}
+
+// 修改联系方式
+func updatePhone(id int, newPhone string) bool {
+	for i := range contactList {
+		if contactList[i].id == id {
+			contactList[i].phone = newPhone
+			return true
+		}
+	}
+	return false
+}
+
+// 分数筛选
+func filterByScore(limit int) []Contact {
+	var res []Contact
+	for _, item := range contactList {
+		if item.score >= limit {
+			res = append(res, item)
+		}
+	}
+	return res
+}
+
+// 遍历打印
+func showAll(list []Contact) {
+	if len(list) == 0 {
+		fmt.Println("暂无数据")
+		return
+	}
+	for _, v := range list {
+		fmt.Printf("编号:%d 姓名:%s 电话:%s 分组:%s 评分:%d\n",
+			v.id, v.name, v.phone, v.group, v.score)
+	}
+}
 
 func main() {
-	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Println("=== 简易待办清单 ===")
-	fmt.Println("支持命令：add 任务内容 / list / done 任务ID / delete 任务ID / exit")
+	groupMap = make(map[string][]Contact)
+	var opt int
 
 	for {
-		fmt.Print("\n请输入命令：")
-		scanner.Scan()
-		input := scanner.Text()
-		parts := strings.Fields(input)
+		fmt.Println("\n=====通讯录管理系统=====")
+		fmt.Println("1.新增联系人 2.删除联系人 3.修改电话")
+		fmt.Println("4.全部查看 5.分数筛选 6.分组查询 0.退出")
+		fmt.Print("请输入操作选项：")
+		fmt.Scan(&opt)
 
-		if len(parts) == 0 {
-			continue
-		}
-
-		switch parts[0] {
-		case "add":
-			if len(parts) < 2 {
-				fmt.Println("格式错误：add 任务内容")
-				continue
-			}
-			task := strings.Join(parts[1:], " ")
-			todos = append(todos, Todo{ID: nextID, Task: task, Done: false})
-			fmt.Printf("已添加任务：%s（ID：%d）\n", task, nextID)
-			nextID++
-		case "list":
-			if len(todos) == 0 {
-				fmt.Println("暂无待办事项")
-				continue
-			}
-			fmt.Println("ID\t状态\t任务内容")
-			for _, t := range todos {
-				status := "未完成"
-				if t.Done {
-					status = "已完成"
-				}
-				fmt.Printf("%d\t%s\t%s\n", t.ID, status, t.Task)
-			}
-		case "done":
-			if len(parts) != 2 {
-				fmt.Println("格式错误：done 任务ID")
-				continue
-			}
-			id, err := strconv.Atoi(parts[1])
-			if err != nil {
-				fmt.Println("ID必须是数字")
-				continue
-			}
-			found := false
-			for i := range todos {
-				if todos[i].ID == id {
-					todos[i].Done = true
-					fmt.Printf("已标记任务ID %d 为完成\n", id)
-					found = true
-					break
-				}
-			}
-			if !found {
-				fmt.Println("未找到该任务ID")
-			}
-		case "delete":
-			if len(parts) != 2 {
-				fmt.Println("格式错误：delete 任务ID")
-				continue
-			}
-			id, err := strconv.Atoi(parts[1])
-			if err != nil {
-				fmt.Println("ID必须是数字")
-				continue
-			}
-			newTodos := []Todo{}
-			found := false
-			for _, t := range todos {
-				if t.ID != id {
-					newTodos = append(newTodos, t)
-				} else {
-					found = true
-				}
-			}
-			if found {
-				todos = newTodos
-				fmt.Printf("已删除任务ID %d\n", id)
+		switch opt {
+		case 1:
+			var c Contact
+			fmt.Print("输入编号、姓名、电话、分组、评分：")
+			fmt.Scan(&c.id, &c.name, &c.phone, &c.group, &c.score)
+			_, msg := addContact(c)
+			fmt.Println(msg)
+		case 2:
+			var delId int
+			fmt.Print("输入删除编号：")
+			fmt.Scan(&delId)
+			if delContact(delId) {
+				fmt.Println("删除完成")
 			} else {
-				fmt.Println("未找到该任务ID")
+				fmt.Println("未找到该联系人")
 			}
-		case "exit":
+		case 3:
+			var editId int
+			var newTel string
+			fmt.Print("输入修改编号与新号码：")
+			fmt.Scan(&editId, &newTel)
+			if updatePhone(editId, newTel) {
+				fmt.Println("修改成功")
+			} else {
+				fmt.Println("编号不存在")
+			}
+		case 4:
+			showAll(contactList)
+		case 5:
+			var scoreLine int
+			fmt.Print("输入最低筛选分数：")
+			fmt.Scan(&scoreLine)
+			filterData := filterByScore(scoreLine)
+			showAll(filterData)
+		case 6:
+			var gName string
+			fmt.Print("查询分组名称：")
+			fmt.Scan(&gName)
+			showAll(groupMap[gName])
+		case 0:
 			fmt.Println("程序退出")
 			return
 		default:
-			fmt.Println("不支持的命令，请输入 add/list/done/delete/exit")
+			fmt.Println("输入选项无效")
 		}
 	}
 }
