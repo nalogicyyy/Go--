@@ -128,6 +128,18 @@ Go不支持自动类型转换，必须手动强制转换
 **字符串常用简单操作：**
 字符串拼接：直接用 +
 获取字符串长度：len(字符串)
+| 方法 | 语法格式 | 功能介绍 | 代码示例 |
+| ---- | -------- | -------- | -------- |
+| len(str) | `len(s string) int` | 获取字符串字节长度，返回int；中文1字占3字节 | `s := "go语言"; fmt.Println(len(s)) // 输出5` |
+| + 拼接 | `str1 + str2 + str3` | 短字符串直接拼接 | `a:="hello"; b:="go"; res:=a+" "+b` |
+| fmt.Sprintf | `fmt.Sprintf(模板, 参数...)` | 格式化拼接，支持数字、变量转字符串 | `s := fmt.Sprintf("name:%s,age:%d","张三",18)` |
+| strings.Split | `strings.Split(s string, sep string) []string` | 根据分隔符分割字符串，返回字符串切片 | `arr := strings.Split("1,2,3", ",") // [1 2 3]` |
+| strings.Contains | `strings.Contains(s, substr string) bool` | 判断字符串是否包含子串，返回布尔值 | `strings.Contains("golang", "go") // true` |
+| strings.HasPrefix | `strings.HasPrefix(s, prefix string) bool` | 判断字符串是否以指定前缀开头 | `strings.HasPrefix("test.txt", "test") // true` |
+| strings.HasSuffix | `strings.HasSuffix(s, suffix string) bool` | 判断字符串是否以指定后缀结尾 | `strings.HasSuffix("test.txt", ".txt") // true` |
+| strings.Index | `strings.Index(s, substr string) int` | 返回子串第一次出现的字节索引，无则返回-1 | `strings.Index("abcb", "b") // 1` |
+| strings.LastIndex | `strings.LastIndex(s, substr string) int` | 返回子串最后一次出现的字节索引，无则返回-1 | `strings.LastIndex("abcb", "b") // 3` |
+| strings.Join | `strings.Join(strs []string, sep string) string` | 将字符串切片用分隔符拼接为完整字符串 | `arr:=[]string{"a","b"}; res:=strings.Join(arr,"-") // a-b` |
 **核心要点：**
 中文占用字符多，统一用rune遍历
 字符串不可直接修改内容
