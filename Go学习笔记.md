@@ -141,6 +141,32 @@ Go不支持自动类型转换，必须手动强制转换
 | strings.LastIndex | `strings.LastIndex(s, substr string) int` | 返回子串最后一次出现的字节索引，无则返回-1 | `strings.LastIndex("abcb", "b") // 3` |
 | strings.Join | `strings.Join(strs []string, sep string) string` | 将字符串切片用分隔符拼接为完整字符串 | `arr:=[]string{"a","b"}; res:=strings.Join(arr,"-") // a-b` |
 **核心要点：**
+# Go byte 与 rune 完整笔记
+## 一、Go 两种字符类型
+### 1. byte（uint8）【占一个字节】
+1. 底层等价：`type byte uint8`，8位无符号整数，范围 0~255
+2. 作用：存储**单个ASCII字符**（英文、数字、英文标点、空格）
+3. 特点：1个ASCII字符 = 1个byte；中文UTF-8占3个byte，会被拆成多段byte碎片
+4. 适用场景：文件读写、网络二进制流、纯英文文本，占用内存小、性能高
+
+### 2. rune（int32）【占四个字节】
+1. 底层等价：`type rune int32`，32位整数
+2. 作用：存储**单个Unicode字符**（中文、日文、韩文、emoji、特殊符号）
+3. 特点：无论中英文，1个肉眼可见字符 = 1个rune，自动合并UTF-8多字节碎片
+4. 适用场景：含中文文本、统计文字个数、截取汉字、遍历单个字符
+
+## 二、字符串底层规则
+1. Go 字符串底层存储结构是 `[]byte`（字节切片）
+2. 编码默认 UTF-8：
+   - 英文字符：1字节
+   - 中文字符：3字节
+3. 长度区分（关键考点）
+```go
+s := "你好 golang"
+// len(s)：获取byte字节总数（底层存储碎片数量）
+fmt.Println(len(s)) // 3+3+1+6 = 13
+// []rune(s)：转换为完整字符切片，长度=肉眼看到的文字数量
+fmt.Println(len([]rune(s))) // 2汉字+1空格+6字母 = 9
 中文占用字符多，统一用rune遍历
 字符串不可直接修改内容
 不同类型不能直接运算，必须转成同类型
